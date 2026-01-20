@@ -1,0 +1,17 @@
+# Maven / Java
+rental-properties-api/target/
+rental-properties-api/.idea/
+rental-properties-api/.classpath
+rental-properties-api/.project
+rental-properties-api/.settings/
+
+# Node / React
+rental-properties-web/node_modules/
+rental-properties-web/dist/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/

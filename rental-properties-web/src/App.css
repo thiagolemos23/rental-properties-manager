@@ -1,0 +1,426 @@
+:root {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top left, #0f172a, #020617 55%);
+  color: #e5e7eb;
+}
+
+/* layout geral */
+
+.app-root {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* sidebar */
+
+.app-sidebar {
+  width: 340px;
+  padding: 56px 40px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.logo-block {
+  font-weight: 800;
+  font-size: 1.6rem;
+  letter-spacing: 0.01em; /* menos espaçado, cara de logo mesmo */
+  margin-bottom: 16px;
+  white-space: nowrap; /* garante tudo em uma linha */
+}
+
+.logo-main {
+  color: #e5e7eb;
+}
+
+.logo-highlight {
+  color: #38bdf8;
+  margin-left: 0.35rem;
+}
+
+
+.sidebar-subtitle {
+  margin: 0.15rem 0 0;   /* bem pertinho do RENTAL PROPERTIES */
+  font-size: 0.95rem;
+  color: #9ca3af;
+}
+
+.sidebar-text {
+  margin: 0.9rem 0 0;    /* deixa o parágrafo mais afastado do subtítulo */
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+
+/* main */
+
+.app-main {
+  flex: 1;
+  padding: 80px 80px 56px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.app-header p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+/* botão principal */
+
+.primary-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.6rem;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: white;
+  font-weight: 600;
+  font-size: 0.93rem;
+  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(56, 189, 248, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.primary-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(56, 189, 248, 0.45);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.35);
+}
+
+/* alerts */
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  font-size: 0.9rem;
+}
+
+.alert.error {
+  border-color: rgba(248, 113, 113, 0.8);
+  background: rgba(31, 41, 55, 0.94);
+  color: #fecaca;
+}
+
+/* cards & grid */
+
+.app-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.card {
+  background: radial-gradient(circle at top left, #0f172a, #020617 65%);
+  border-radius: 1.4rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
+}
+
+.filters-card h2,
+.list-card h2,
+.form-card h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.filters-card p,
+.form-subtitle {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.fake-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.fake-filters button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.fake-filters button:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  color: #cbd5f5;
+}
+
+.pill-active {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.85);
+  color: #e0f2fe;
+}
+
+/* lista de imóveis */
+
+.properties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.empty-state {
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px dashed rgba(148, 163, 184, 0.6);
+  font-size: 0.9rem;
+  color: #cbd5f5;
+}
+
+.property-card {
+  padding: 1rem 1.05rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.property-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.property-card-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.reservations-list {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reservation-card {
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  font-size: 0.9rem;
+}
+
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.reservation-guest,
+.reservation-dates,
+.reservation-meta {
+  margin: 0.15rem 0;
+  color: #cbd5f5;
+}
+
+.reservation-meta strong {
+  font-weight: 600;
+}
+
+.property-location {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.property-type {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #a5b4fc;
+}
+
+.property-meta {
+  margin-top: 0.3rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+
+.property-meta strong {
+  font-weight: 600;
+}
+
+.property-description {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: #cbd5f5;
+}
+
+/* status badges */
+
+.status-badge {
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.status-available {
+  background: rgba(34, 197, 94, 0.12);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.85);
+}
+
+.status-blocked {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.85);
+}
+
+.status-inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.85);
+}
+
+/* formulário */
+
+.form-card {
+  margin-top: 1.5rem;
+}
+
+.property-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.form-field input,
+.form-field textarea {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: #6b7280;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* responsivo */
+
+@media (max-width: 1024px) {
+  .app-root {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    border-right: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .app-main {
+    padding: 2rem 1.5rem 2.5rem;
+  }
+
+  .app-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.app-sidebar h1,
+.app-sidebar h2,
+.app-sidebar h3,
+.app-sidebar p {
+  margin: 0;
+}
+
+
+.logo-block {
+  margin-bottom: -28px; 
+}
