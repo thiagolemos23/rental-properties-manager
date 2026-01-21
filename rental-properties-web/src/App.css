@@ -304,6 +304,68 @@ body {
   color: #cbd5f5;
 }
 
+.reservations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.reservation-card {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.9rem;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.85rem;
+}
+
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.reservation-guest {
+  margin: 0.1rem 0;
+  color: #e5e7eb;
+}
+
+.reservation-dates {
+  margin: 0.1rem 0;
+  color: #9ca3af;
+}
+
+.reservation-meta {
+  margin: 0.1rem 0 0;
+  color: #cbd5f5;
+}
+
+.property-actions {
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.secondary-button {
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.secondary-button:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
 /* status badges */
 
 .status-badge {
@@ -330,6 +392,24 @@ body {
   background: rgba(148, 163, 184, 0.15);
   color: #e5e7eb;
   border: 1px solid rgba(148, 163, 184, 0.85);
+}
+
+.status-booked {
+  background: rgba(56, 189, 248, 0.12);
+  color: #bae6fd;
+  border-color: rgba(56, 189, 248, 0.9);
+}
+
+.status-cancelled {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.9);
+}
+
+.status-completed {
+  background: rgba(52, 211, 153, 0.12);
+  color: #bbf7d0;
+  border-color: rgba(52, 211, 153, 0.9);
 }
 
 /* formulário */
@@ -393,7 +473,34 @@ body {
   justify-content: flex-end;
 }
 
-/* responsivo */
+.reservations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.reservation-card {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.9rem;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reservation-guest,
+.reservation-dates,
+.reservation-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #cbd5f5;
+}
 
 @media (max-width: 1024px) {
   .app-root {

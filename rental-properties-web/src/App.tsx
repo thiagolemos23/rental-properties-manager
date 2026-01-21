@@ -20,16 +20,15 @@ type Property = {
 type Reservation = {
   id: number;
   propertyId: number;
-  propertyTitle?: string; // se o seu backend mandar isso, ótimo. Se não mandar, não tem problema
+  propertyTitle?: string;
   guestName: string;
   guestEmail: string;
-  checkIn: string;   // vem em formato de data (ex: "2026-01-20")
+  checkIn: string;
   checkOut: string;
-  status: string;    // BOOKED / CANCELLED / COMPLETED
+  status: string; // BOOKED / CANCELLED / COMPLETED
   totalPrice: number;
   createdAt: string;
 };
-
 
 type Page<T> = {
   content: T[];
@@ -53,11 +52,13 @@ function App() {
   const [nightlyPrice, setNightlyPrice] = useState("");
   const [maxGuests, setMaxGuests] = useState("");
   const [description, setDescription] = useState("");
+
+  // filtros
   const [filter, setFilter] = useState<Filter>("ALL");
+
+  // reservas
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loadingReservations, setLoadingReservations] = useState(false);
-
-
 
   async function loadProperties() {
     try {
@@ -94,22 +95,20 @@ function App() {
       setReservations(data);
     } catch (err) {
       console.error(err);
-      // por enquanto não vamos poluir o erro principal; se quiser, depois
-      // criamos um estado de erro separado pra reservas
+      // se quiser depois criamos um estado de erro específico para reservas
     } finally {
       setLoadingReservations(false);
     }
   }
 
-    const visibleProperties = properties.filter((p) => {
+  const visibleProperties = properties.filter((p) => {
     if (filter === "ALL") return true;
     if (filter === "AVAILABLE") return p.status === "AVAILABLE";
     if (filter === "BLOCKED") return p.status === "BLOCKED";
     return true;
   });
 
-
-  async function handleCreateProperty(event: FormEvent) {
+  async function handleCreateProperty(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!title.trim() || !type.trim() || !location.trim()) {
@@ -152,10 +151,36 @@ function App() {
     }
   }
 
+    async function handleDeleteProperty(id: number) {
+    const sure = window.confirm(
+      "Tem certeza que deseja remover esse imóvel do painel?"
+    );
+    if (!sure) return;
+
+    try {
+      setError(null);
+
+      const res = await fetch(`${API_BASE_URL}/properties/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok && res.status !== 204) {
+        throw new Error("Erro ao remover imóvel");
+      }
+
+      // remove da lista sem precisar recarregar tudo
+      setProperties((prev) => prev.filter((p) => p.id !== id));
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message ?? "Erro inesperado ao remover imóvel");
+    }
+  }
+
+
   useEffect(() => {
-  loadProperties();
-  loadReservations();
-}, []);
+    loadProperties();
+    loadReservations();
+  }, []);
 
   return (
     <div className="app-root">
@@ -201,83 +226,103 @@ function App() {
         {loading && <div className="alert">Carregando imóveis...</div>}
 
         <section className="app-grid">
-          {/* Coluna de filtros (placeholder por enquanto) */}
+          {/* Coluna esquerda: filtros + reservas */}
           <section className="card filters-card">
             <h2>Filtros</h2>
             <p>Depois a gente liga esses filtros de verdade 😉</p>
 
-          <div className="fake-filters">
-           <button
-           type="button"
-          className={`pill ${filter === "ALL" ? "pill-active" : ""}`}
-          onClick={() => setFilter("ALL")}
-          >
-         Todos
-         </button>
+            <div className="fake-filters">
+              <button
+                type="button"
+                className={`pill ${filter === "ALL" ? "pill-active" : ""}`}
+                onClick={() => setFilter("ALL")}
+              >
+                Todos
+              </button>
 
-         <button
-         type="button"
-         className={`pill ${filter === "AVAILABLE" ? "pill-active" : ""}`}
-         onClick={() => setFilter("AVAILABLE")}
-      >
+              <button
+                type="button"
+                className={`pill ${
+                  filter === "AVAILABLE" ? "pill-active" : ""
+                }`}
+                onClick={() => setFilter("AVAILABLE")}
+              >
+                Disponíveis
+              </button>
 
-        <section className="card" style={{ marginTop: "1rem" }}>
-    <h2>Próximas reservas</h2>
-    <p className="form-subtitle">
-      Visão rápida das reservas já cadastradas no sistema.
-    </p>
-
-    {loadingReservations ? (
-      <p>Carregando reservas...</p>
-    ) : reservations.length === 0 ? (
-      <p className="empty-state">
-        Nenhuma reserva cadastrada ainda. Depois vamos permitir criar reservas direto daqui. 😉
-      </p>
-    ) : (
-      <div className="reservations-list">
-        {reservations.map((reservation) => (
-          <div key={reservation.id} className="reservation-card">
-            <div className="reservation-header">
-              <strong>{reservation.propertyTitle ?? `Imóvel #${reservation.propertyId}`}</strong>
-              <span className={`status-badge status-${reservation.status.toLowerCase()}`}>
-                {reservation.status}
-              </span>
+              <button
+                type="button"
+                className={`pill ${
+                  filter === "BLOCKED" ? "pill-active" : ""
+                }`}
+                onClick={() => setFilter("BLOCKED")}
+              >
+                Bloqueados
+              </button>
             </div>
 
-            <p className="reservation-guest">
-              {reservation.guestName} — {reservation.guestEmail}
-            </p>
+            {/* bloco de reservas abaixo dos filtros */}
+            <section className="card" style={{ marginTop: "1rem" }}>
+              <h2>Próximas reservas</h2>
+              <p className="form-subtitle">
+                Visão rápida das reservas já cadastradas no sistema.
+              </p>
 
-            <p className="reservation-dates">
-              {new Date(reservation.checkIn).toLocaleDateString()}{" "}
-              até{" "}
-              {new Date(reservation.checkOut).toLocaleDateString()}
-            </p>
+              {loadingReservations ? (
+                <p>Carregando reservas...</p>
+              ) : reservations.length === 0 ? (
+                <p className="empty-state">
+                  Nenhuma reserva cadastrada ainda. Depois vamos permitir criar
+                  reservas direto daqui. 😉
+                </p>
+              ) : (
+                <div className="reservations-list">
+                  {reservations.map((reservation) => (
+                    <div key={reservation.id} className="reservation-card">
+                      <div className="reservation-header">
+                        <strong>
+                          {reservation.propertyTitle ??
+                            `Imóvel #${reservation.propertyId}`}
+                        </strong>
+                        <span
+                          className={`status-badge status-${reservation.status.toLowerCase()}`}
+                        >
+                          {reservation.status}
+                        </span>
+                      </div>
 
-            <p className="reservation-meta">
-              Total: <strong>R$ {reservation.totalPrice.toFixed(2)}</strong> •
-              criada em{" "}
-              {new Date(reservation.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-        ))}
-      </div>
-    )}
-  </section>
-  
-        Disponíveis
-      </button>
-  <button
-    type="button"
-    className={`pill ${filter === "BLOCKED" ? "pill-active" : ""}`}
-    onClick={() => setFilter("BLOCKED")}
-  >
-    Bloqueados
-  </button>
-</div>
+                      <p className="reservation-guest">
+                        {reservation.guestName} — {reservation.guestEmail}
+                      </p>
+
+                      <p className="reservation-dates">
+                        {new Date(
+                          reservation.checkIn
+                        ).toLocaleDateString()}{" "}
+                        até{" "}
+                        {new Date(
+                          reservation.checkOut
+                        ).toLocaleDateString()}
+                      </p>
+
+                      <p className="reservation-meta">
+                        Total:{" "}
+                        <strong>
+                          R$ {reservation.totalPrice.toFixed(2)}
+                        </strong>{" "}
+                        • criada em{" "}
+                        {new Date(
+                          reservation.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </section>
 
-          {/* Lista de imóveis */}
+          {/* Coluna direita: lista de imóveis */}
           <section className="card list-card">
             {visibleProperties.length === 0 && !loading ? (
               <div className="empty-state">
@@ -317,7 +362,7 @@ function App() {
                       <span>
                         💰{" "}
                         <strong>
-                          R$
+                          R{"$ "}
                           {property.nightlyPrice.toLocaleString("pt-BR", {
                             minimumFractionDigits: 2,
                           })}
@@ -331,6 +376,16 @@ function App() {
                         {property.description}
                       </p>
                     )}
+                     <div className="property-actions">
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => handleDeleteProperty(property.id)}
+                      >
+                        Remover imóvel
+                      </button>
+                    </div>
+
                   </article>
                 ))}
               </div>
