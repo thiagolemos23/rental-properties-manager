@@ -1,10 +1,12 @@
 package dev.thiago.rental_properties_api.application.reservation;
+
 import dev.thiago.rental_properties_api.domain.property.Property;
 import dev.thiago.rental_properties_api.domain.reservation.Reservation;
 import dev.thiago.rental_properties_api.domain.reservation.ReservationStatus;
 import dev.thiago.rental_properties_api.infra.property.PropertyRepository;
 import dev.thiago.rental_properties_api.infra.reservation.ReservationRepository;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,7 +56,7 @@ public class ReservationController {
         BigDecimal totalPrice = property.getNightlyPrice()
                 .multiply(BigDecimal.valueOf(nights));
 
-         // 5) Verificar conflito de datas com outras reservas (evitar overbooking)
+        // 5) Verificar conflito de datas com outras reservas (evitar overbooking)
         var conflicts = reservationRepository
                 .findByPropertyIdAndCheckOutGreaterThanEqualAndCheckInLessThanEqual(
                         property.getId(), checkIn, checkOut
@@ -87,7 +89,7 @@ public class ReservationController {
                 .body(response);
     }
 
-    // GET /reservations/by-property/{propertyId} -> lista reservas de um imóvel
+    // GET /reservations/by-property/{propertyId} -> lista reservas de um imóvel específico
     @GetMapping("/by-property/{propertyId}")
     public ResponseEntity<List<ReservationResponse>> listByProperty(@PathVariable Long propertyId) {
         if (!propertyRepository.existsById(propertyId)) {
@@ -95,6 +97,20 @@ public class ReservationController {
         }
 
         List<Reservation> reservations = reservationRepository.findByPropertyId(propertyId);
+
+        List<ReservationResponse> responseList = reservations.stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(responseList);
+    }
+
+    // GET /reservations -> lista TODAS as reservas (usado no painel "Próximas reservas")
+    @GetMapping
+    public ResponseEntity<List<ReservationResponse>> listAll() {
+        List<Reservation> reservations = reservationRepository.findAll(
+                Sort.by("checkIn").ascending()
+        );
 
         List<ReservationResponse> responseList = reservations.stream()
                 .map(this::toResponse)

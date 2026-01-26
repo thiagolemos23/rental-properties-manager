@@ -60,6 +60,23 @@ function App() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loadingReservations, setLoadingReservations] = useState(false);
 
+  // calcula apenas as próximas reservas (futuras) e limita em 5
+  const today = new Date();
+
+  const upcomingReservations = reservations
+    .filter((reservation) => {
+      // considera reserva futura se o check-out ainda não passou
+      const checkOutDate = new Date(reservation.checkOut);
+      return checkOutDate >= today;
+    })
+    .sort((a, b) => {
+      // ordena pela data de check-in (mais próxima primeiro)
+      return (
+        new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()
+      );
+    })
+    .slice(0, 5);
+
   async function loadProperties() {
     try {
       setLoading(true);
@@ -151,7 +168,7 @@ function App() {
     }
   }
 
-    async function handleDeleteProperty(id: number) {
+  async function handleDeleteProperty(id: number) {
     const sure = window.confirm(
       "Tem certeza que deseja remover esse imóvel do painel?"
     );
@@ -175,7 +192,6 @@ function App() {
       setError(err.message ?? "Erro inesperado ao remover imóvel");
     }
   }
-
 
   useEffect(() => {
     loadProperties();
@@ -265,19 +281,19 @@ function App() {
             <section className="card" style={{ marginTop: "1rem" }}>
               <h2>Próximas reservas</h2>
               <p className="form-subtitle">
-                Visão rápida das reservas já cadastradas no sistema.
+                Visão rápida das próximas reservas já cadastradas no sistema.
               </p>
 
               {loadingReservations ? (
                 <p>Carregando reservas...</p>
-              ) : reservations.length === 0 ? (
+              ) : upcomingReservations.length === 0 ? (
                 <p className="empty-state">
-                  Nenhuma reserva cadastrada ainda. Depois vamos permitir criar
-                  reservas direto daqui. 😉
+                  Nenhuma reserva futura cadastrada ainda. Depois vamos permitir
+                  criar reservas direto daqui. 😉
                 </p>
               ) : (
                 <div className="reservations-list">
-                  {reservations.map((reservation) => (
+                  {upcomingReservations.map((reservation) => (
                     <div key={reservation.id} className="reservation-card">
                       <div className="reservation-header">
                         <strong>
@@ -376,7 +392,7 @@ function App() {
                         {property.description}
                       </p>
                     )}
-                     <div className="property-actions">
+                    <div className="property-actions">
                       <button
                         type="button"
                         className="secondary-button"
@@ -385,7 +401,6 @@ function App() {
                         Remover imóvel
                       </button>
                     </div>
-
                   </article>
                 ))}
               </div>
