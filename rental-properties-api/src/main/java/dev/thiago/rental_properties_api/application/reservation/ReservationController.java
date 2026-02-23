@@ -1,5 +1,6 @@
 package dev.thiago.rental_properties_api.application.reservation;
 
+import dev.thiago.rental_properties_api.PropertyStatus;
 import dev.thiago.rental_properties_api.domain.property.Property;
 import dev.thiago.rental_properties_api.domain.reservation.Reservation;
 import dev.thiago.rental_properties_api.domain.reservation.ReservationStatus;
@@ -38,10 +39,18 @@ public class ReservationController {
                 .orElse(null);
 
         if (property == null) {
-            return ResponseEntity.badRequest().body("Property not found with id=" + request.propertyId());
+            return ResponseEntity.badRequest()
+                    .body("Property not found with id=" + request.propertyId());
         }
 
-        // 2) Validar datas
+        // 2) Regra de negócio: só permite reserva se o imóvel estiver AVAILABLE
+        if (property.getStatus() != PropertyStatus.AVAILABLE) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Property is not available for booking");
+        }
+
+        // 3) Validar datas
         LocalDate checkIn = request.checkIn();
         LocalDate checkOut = request.checkOut();
 
@@ -49,14 +58,14 @@ public class ReservationController {
             return ResponseEntity.badRequest().body("checkOut must be after checkIn");
         }
 
-        // 3) Calcular número de noites
+        // 4) Calcular número de noites
         long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
 
-        // 4) Calcular valor total (diária x noites)
+        // 5) Calcular valor total (diária x noites)
         BigDecimal totalPrice = property.getNightlyPrice()
                 .multiply(BigDecimal.valueOf(nights));
 
-        // 5) Verificar conflito de datas com outras reservas (evitar overbooking)
+        // 6) Verificar conflito de datas com outras reservas (evitar overbooking)
         var conflicts = reservationRepository
                 .findByPropertyIdAndCheckOutGreaterThanEqualAndCheckInLessThanEqual(
                         property.getId(), checkIn, checkOut
@@ -68,7 +77,7 @@ public class ReservationController {
                     .body("There is already a reservation for this property in the selected period.");
         }
 
-        // 6) Criar a reserva
+        // 7) Criar a reserva
         Reservation reservation = Reservation.builder()
                 .property(property)
                 .guestName(request.guestName())
@@ -89,6 +98,18 @@ public class ReservationController {
                 .body(response);
     }
 
+    // GET /reservations -> lista todas as reservas (para o painel)
+    @GetMapping
+    public List<ReservationResponse> listAll() {
+        List<Reservation> reservations = reservationRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return reservations.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     // GET /reservations/by-property/{propertyId} -> lista reservas de um imóvel específico
     @GetMapping("/by-property/{propertyId}")
     public ResponseEntity<List<ReservationResponse>> listByProperty(@PathVariable Long propertyId) {
@@ -97,20 +118,6 @@ public class ReservationController {
         }
 
         List<Reservation> reservations = reservationRepository.findByPropertyId(propertyId);
-
-        List<ReservationResponse> responseList = reservations.stream()
-                .map(this::toResponse)
-                .toList();
-
-        return ResponseEntity.ok(responseList);
-    }
-
-    // GET /reservations -> lista TODAS as reservas (usado no painel "Próximas reservas")
-    @GetMapping
-    public ResponseEntity<List<ReservationResponse>> listAll() {
-        List<Reservation> reservations = reservationRepository.findAll(
-                Sort.by("checkIn").ascending()
-        );
 
         List<ReservationResponse> responseList = reservations.stream()
                 .map(this::toResponse)

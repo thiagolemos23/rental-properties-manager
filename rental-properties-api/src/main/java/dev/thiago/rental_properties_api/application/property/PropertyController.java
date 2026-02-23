@@ -5,7 +5,6 @@ import dev.thiago.rental_properties_api.infra.property.PropertyRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.net.URI;
 
@@ -95,6 +94,37 @@ public class PropertyController {
         propertyRepository.deleteById(id);
         return ResponseEntity.noContent().build(); // 204
     }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(
+        @PathVariable Long id,
+        @RequestBody UpdatePropertyStatusRequest request
+        ) {
+        var propertyOpt = propertyRepository.findById(id);
+
+        if (propertyOpt.isEmpty()) {
+        return ResponseEntity.notFound().build();
+        }
+
+     var property = propertyOpt.get();
+
+        // tentar converter a String que veio do front para o enum PropertyStatus
+        PropertyStatus newStatus;
+        try {
+        // ex: "AVAILABLE", "BLOCKED", "INACTIVE"
+        newStatus = PropertyStatus.valueOf(request.status());
+        } catch (IllegalArgumentException | NullPointerException e) {
+        return ResponseEntity
+                .badRequest()
+                .body("Invalid status: " + request.status());
+    }
+
+    property.setStatus(newStatus);
+    var saved = propertyRepository.save(property);
+
+    // pode devolver o próprio imóvel salvo (o front já trata os campos que precisa)
+    return ResponseEntity.ok(toResponse(saved));
+}
 
 
    private PropertyResponse toResponse(Property property) {
