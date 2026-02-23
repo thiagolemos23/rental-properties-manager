@@ -10,7 +10,7 @@ import java.net.URI;
 
 @RestController
 @RequestMapping("/properties")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class PropertyController {
 
     private final PropertyRepository propertyRepository;
