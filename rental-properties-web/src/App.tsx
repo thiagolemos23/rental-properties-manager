@@ -165,11 +165,31 @@ function App() {
     }
   }
 
+  // aplica filtro por status
   const visibleProperties = properties.filter((p) => {
     if (filter === "ALL") return true;
     if (filter === "AVAILABLE") return p.status === "AVAILABLE";
     if (filter === "BLOCKED") return p.status === "BLOCKED";
     return true;
+  });
+
+  // ordena para deixar disponíveis no topo
+  const sortedVisibleProperties = [...visibleProperties].sort((a, b) => {
+    const orderForStatus = (status: PropertyStatus) => {
+      const s = typeof status === "string" ? status.toUpperCase().trim() : "";
+      if (s === "AVAILABLE") return 0;
+      if (s === "BLOCKED") return 1;
+      if (s === "INACTIVE") return 2;
+      return 3;
+    };
+
+    const statusDiff =
+      orderForStatus(a.status) - orderForStatus(b.status);
+
+    if (statusDiff !== 0) return statusDiff;
+
+    // se tiver mesmo "peso" de status, ordena alfabeticamente pelo título
+    return a.title.localeCompare(b.title);
   });
 
   // contadores básicos de imóveis
@@ -341,8 +361,10 @@ function App() {
         );
       } else if (msg.includes("checkOut must be after checkIn")) {
         setReservationError("O check-out precisa ser depois do check-in.");
-        } else if (msg.includes("Property is not available for booking")) {
-        setReservationError("Esse imóvel não está disponível para reserva no momento.");
+      } else if (msg.includes("Property is not available for booking")) {
+        setReservationError(
+          "Esse imóvel não está disponível para reserva no momento."
+        );
       } else {
         setReservationError("Erro inesperado ao criar reserva.");
       }
@@ -435,35 +457,9 @@ function App() {
             </div>
           )}
         </section>
-      </aside>
 
-      {/* MAIN */}
-      <main className="app-main">
-        <header className="app-header">
-          <div>
-            <h1>Imóveis cadastrados</h1>
-            <p>
-              {properties.length === 0
-                ? "Nenhum imóvel cadastrado nesta página."
-                : `Encontramos ${visibleProperties.length} imóvel(is) nesta página.`}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() => {
-              const formEl =
-                document.querySelector<HTMLDivElement>("#form-section");
-              formEl?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            + Novo imóvel
-          </button>
-        </header>
-
-        {/* FAIXA DE RESUMO GERAL */}
-        <section className="summary-strip">
+        {/* RESUMO GERAL (chips) */}
+        <section className="sidebar-summary">
           <div className="summary-pill">
             <span className="summary-label">Imóveis cadastrados</span>
             <span className="summary-value">{totalProperties}</span>
@@ -486,11 +482,8 @@ function App() {
           </div>
         </section>
 
-        {error && <div className="alert error">{error}</div>}
-        {loading && <div className="alert">Carregando imóveis...</div>}
-
-        {/* 1) FILTROS + CONTADORES */}
-        <section className="card filters-card">
+        {/* FILTROS NA SIDEBAR */}
+        <section className="card filters-card sidebar-filters">
           <h2>Filtros</h2>
 
           <div className="filters-summary">
@@ -534,6 +527,124 @@ function App() {
               Bloqueados
             </button>
           </div>
+        </section>
+      </aside>
+
+      {/* MAIN */}
+      <main className="app-main">
+        <header className="app-header">
+          <div>
+            <h1>Imóveis cadastrados</h1>
+            <p>
+              {properties.length === 0
+                ? "Nenhum imóvel cadastrado nesta página."
+                : `Encontramos ${sortedVisibleProperties.length} imóvel(is) nesta página.`}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => {
+              const formEl =
+                document.querySelector<HTMLDivElement>("#form-section");
+              formEl?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            + Novo imóvel
+          </button>
+        </header>
+
+        {error && <div className="alert error">{error}</div>}
+        {loading && <div className="alert">Carregando imóveis...</div>}
+
+        {/* 1) LISTA DE IMÓVEIS (EM GRID) – AGORA NO TOPO */}
+        <section className="card list-card">
+          {sortedVisibleProperties.length === 0 && !loading ? (
+            <div className="empty-state">
+              <p>
+                Nenhum imóvel cadastrado ainda. Use o botão{" "}
+                <strong>“Novo imóvel”</strong> para começar.
+              </p>
+            </div>
+          ) : (
+            <div className="properties-list">
+              {sortedVisibleProperties.map((property) => (
+                <article key={property.id} className="property-card">
+                  <header className="property-card-header">
+                    <h3>{property.title}</h3>
+                    <span
+                      className={`status-badge status-${property.status
+                        .toLowerCase()
+                        .trim()}`}
+                    >
+                      {property.status === "AVAILABLE"
+                        ? "Disponível"
+                        : property.status === "BLOCKED"
+                        ? "Bloqueado"
+                        : property.status === "INACTIVE"
+                        ? "Inativo"
+                        : property.status}
+                    </span>
+                  </header>
+
+                  <p className="property-location">{property.location}</p>
+                  <p className="property-type">{property.type}</p>
+
+                  <div className="property-meta">
+                    <span>
+                      🧍 Até <strong>{property.maxGuests}</strong> hóspedes
+                    </span>
+                    <span>
+                      💰{" "}
+                      <strong>
+                        R{"$ "}
+                        {property.nightlyPrice.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </strong>{" "}
+                      / noite
+                    </span>
+                  </div>
+
+                  {property.description && (
+                    <p className="property-description">
+                      {property.description}
+                    </p>
+                  )}
+
+                  {/* controle de status dentro do card */}
+                  <div className="property-status-row">
+                    <span>Status:</span>
+                    <select
+                      className="property-status-select"
+                      value={property.status}
+                      onChange={(e) =>
+                        handleChangePropertyStatus(
+                          property.id,
+                          e.target.value as PropertyStatus
+                        )
+                      }
+                    >
+                      <option value="AVAILABLE">Disponível</option>
+                      <option value="BLOCKED">Bloqueado</option>
+                      <option value="INACTIVE">Inativo</option>
+                    </select>
+                  </div>
+
+                  <div className="property-actions">
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => handleDeleteProperty(property.id)}
+                    >
+                      Remover imóvel
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* 2) FORMULÁRIO DE RESERVA RÁPIDA */}
@@ -612,8 +723,8 @@ function App() {
                 <p>
                   Reserva para{" "}
                   <strong>{selectedReservationProperty.title}</strong> —{" "}
-                  <strong>{reservationNights}</strong>{" "}
-                  noite(s), total estimado{" "}
+                  <strong>{reservationNights}</strong> noite(s), total
+                  estimado{" "}
                   <strong>
                     R{"$ "}
                     {reservationEstimatedTotal.toLocaleString("pt-BR", {
@@ -630,7 +741,9 @@ function App() {
               <p className="reservation-error">{reservationError}</p>
             )}
             {reservationMessage && (
-              <p className="reservation-success">{reservationMessage}</p>
+              <p className="reservation-success">
+                {reservationMessage}
+              </p>
             )}
 
             <div className="form-actions">
@@ -726,95 +839,6 @@ function App() {
               </button>
             </div>
           </form>
-        </section>
-
-        {/* 4) LISTA DE IMÓVEIS (EM GRID) */}
-        <section className="card list-card">
-          {visibleProperties.length === 0 && !loading ? (
-            <div className="empty-state">
-              <p>
-                Nenhum imóvel cadastrado ainda. Use o botão{" "}
-                <strong>“Novo imóvel”</strong> para começar.
-              </p>
-            </div>
-          ) : (
-            <div className="properties-list">
-              {visibleProperties.map((property) => (
-                <article key={property.id} className="property-card">
-                  <header className="property-card-header">
-                    <h3>{property.title}</h3>
-                    <span
-                      className={`status-badge status-${property.status
-                        .toLowerCase()
-                        .trim()}`}
-                    >
-                      {property.status === "AVAILABLE"
-                        ? "Disponível"
-                        : property.status === "BLOCKED"
-                        ? "Bloqueado"
-                        : property.status === "INACTIVE"
-                        ? "Inativo"
-                        : property.status}
-                    </span>
-                  </header>
-
-                  <p className="property-location">{property.location}</p>
-                  <p className="property-type">{property.type}</p>
-
-                  <div className="property-meta">
-                    <span>
-                      🧍 Até <strong>{property.maxGuests}</strong> hóspedes
-                    </span>
-                    <span>
-                      💰{" "}
-                      <strong>
-                        R{"$ "}
-                        {property.nightlyPrice.toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </strong>{" "}
-                      / noite
-                    </span>
-                  </div>
-
-                  {property.description && (
-                    <p className="property-description">
-                      {property.description}
-                    </p>
-                  )}
-
-                  {/* controle de status dentro do card */}
-                  <div className="property-status-row">
-                    <span>Status:</span>
-                    <select
-                      className="property-status-select"
-                      value={property.status}
-                      onChange={(e) =>
-                        handleChangePropertyStatus(
-                          property.id,
-                          e.target.value as PropertyStatus
-                        )
-                      }
-                    >
-                      <option value="AVAILABLE">Disponível</option>
-                      <option value="BLOCKED">Bloqueado</option>
-                      <option value="INACTIVE">Inativo</option>
-                    </select>
-                  </div>
-
-                  <div className="property-actions">
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() => handleDeleteProperty(property.id)}
-                    >
-                      Remover imóvel
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
         </section>
       </main>
     </div>
